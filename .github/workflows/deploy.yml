@@ -1,0 +1,72 @@
+name: Build and deploy Medicina
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: medicina-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check types and build
+        run: npm run build
+
+      - name: Publish to the server
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          MEDICINA_SSH_HOST: ${{ secrets.MEDICINA_SSH_HOST }}
+          MEDICINA_SSH_KEY: ${{ secrets.MEDICINA_SSH_KEY }}
+          MEDICINA_SSH_KNOWN_HOSTS: ${{ secrets.MEDICINA_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${MEDICINA_SSH_HOST:?}" "${MEDICINA_SSH_KEY:?}" "${MEDICINA_SSH_KNOWN_HOSTS:?}"
+          install -d -m 700 "$HOME/.ssh"
+          umask 077
+          printf '%s\n' "$MEDICINA_SSH_KEY" > "$HOME/.ssh/medicina"
+          printf '%s\n' "$MEDICINA_SSH_KNOWN_HOSTS" > "$HOME/.ssh/medicina_known_hosts"
+          trap 'rm -f "$HOME/.ssh/medicina" "$HOME/.ssh/medicina_known_hosts"' EXIT
+          tar -C dist -czf "$RUNNER_TEMP/medicina.tar.gz" .
+          ssh -i "$HOME/.ssh/medicina" \
+            -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=$HOME/.ssh/medicina_known_hosts" -o ConnectTimeout=15 \
+            "medicina-deploy@$MEDICINA_SSH_HOST" deploy < "$RUNNER_TEMP/medicina.tar.gz"
+
+      - name: Check the deployed site
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          MEDICINA_SSH_HOST: ${{ secrets.MEDICINA_SSH_HOST }}
+        run: |
+          set -euo pipefail
+          for path in / /screening; do
+            curl --fail --silent --show-error --location --retry 3 --max-time 15 \
+              --resolve "medicina.storozhq.ru:80:$MEDICINA_SSH_HOST" \
+              --resolve "medicina.storozhq.ru:443:$MEDICINA_SSH_HOST" \
+              "http://medicina.storozhq.ru$path" | grep -F '<title>РевмаПуть</title>'
+          done

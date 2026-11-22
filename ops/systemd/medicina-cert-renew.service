@@ -1,0 +1,8 @@
+[Unit]
+Description=Renew the Medicina HTTPS certificate
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/circuit-tutor/certbot/bin/certbot renew --non-interactive --quiet --cert-name medicina.storozhq.ru --no-directory-hooks --deploy-hook "/usr/sbin/nginx -t && /usr/bin/systemctl reload nginx"
