@@ -11,6 +11,7 @@ import {
 import { Button, Disclosure, DisclosurePanel } from 'react-aria-components'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router'
 import libraryImage from './assets/library.webp'
+import { Diary, type DiaryEntries, type DiaryEntry } from './diary/Diary'
 import { emptyScreeningDraft, Screening } from './screening/Screening'
 
 const pages = {
@@ -166,15 +167,6 @@ function SectionFrame({ title, children }: { title: string; children: ReactNode 
   )
 }
 
-function Account() {
-  return (
-    <SectionFrame title={pages['/account']}>
-      <h2>Дневник симптомов</h2>
-      <p>Дневник и журнал приёма препаратов появятся в следующих версиях.</p>
-    </SectionFrame>
-  )
-}
-
 function Library() {
   return (
     <SectionFrame title={pages['/library']}>
@@ -215,6 +207,17 @@ function RouteEffects() {
 
 export function App() {
   const [screeningDraft, setScreeningDraft] = useState(emptyScreeningDraft)
+  const [diaryEntries, setDiaryEntries] = useState<DiaryEntries>({})
+
+  function saveDiaryEntry(entry: DiaryEntry, previousDate: string | null) {
+    setDiaryEntries(current => {
+      if (current[entry.date] && previousDate !== entry.date) return current
+      const updated = { ...current }
+      if (previousDate && previousDate !== entry.date) delete updated[previousDate]
+      updated[entry.date] = entry
+      return updated
+    })
+  }
 
   return (
     <div className="app-shell">
@@ -227,11 +230,13 @@ export function App() {
           <Route path="/screening/*" element={
             <Screening title={pages['/screening']} disclaimer={disclaimer} draft={screeningDraft} onDraftChange={setScreeningDraft} />
           } />
-          <Route path="/account" element={<Account />} />
+          <Route path="/account" element={
+            <Diary title={pages['/account']} entries={diaryEntries} onSave={saveDiaryEntry} />
+          } />
           <Route path="/library" element={<Library />} />
           <Route path="/privacy" element={
             <SectionFrame title={pages['/privacy']}>
-              <p>В этом прототипе нет форм для сбора персональных данных или сведений о здоровье. Политика будет опубликована до подключения этих функций.</p>
+              <p>В учебных формах используйте вымышленные данные. Ответы анкеты и записи дневника остаются в памяти открытой вкладки и исчезают при её обновлении.</p>
             </SectionFrame>
           } />
           <Route path="/terms" element={
