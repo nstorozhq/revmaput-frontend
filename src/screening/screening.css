@@ -1,0 +1,141 @@
+.screening-panel {
+  max-width: 47rem;
+  padding: 1.15rem;
+}
+
+.screening-panel h2 {
+  font-size: clamp(1.28rem, 3.8vw, 1.7rem);
+  line-height: 1.28;
+}
+
+#screening-step-heading:focus { outline: none; }
+
+.screening-description {
+  max-width: 60ch;
+  margin-top: .65rem;
+  color: var(--muted);
+}
+
+.screening-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  margin-top: 1.15rem;
+  padding: .75rem .85rem;
+  border: 1px solid #e0dbf2;
+  border-radius: .45rem;
+  color: var(--ink);
+  background: var(--accent-tint);
+}
+
+.screening-notice svg { margin-top: .12rem; color: var(--accent-strong); }
+
+.screening-consent, .question-option {
+  display: flex;
+  min-height: 2.875rem;
+  align-items: flex-start;
+  gap: .65rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.screening-consent {
+  width: fit-content;
+  align-items: center;
+  margin-top: .85rem;
+  padding: .45rem .35rem;
+  border-radius: .35rem;
+  font-weight: 700;
+}
+
+.checkbox-mark, .radio-mark {
+  display: grid;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: none;
+  place-items: center;
+  border: 2px solid #79738c;
+  color: var(--surface);
+  background: var(--surface);
+}
+
+.checkbox-mark { border-radius: .25rem; }
+.checkbox-mark svg { visibility: hidden; }
+.screening-consent[data-selected] .checkbox-mark {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.screening-consent[data-selected] .checkbox-mark svg { visibility: visible; }
+.screening-consent[data-hovered] .checkbox-mark { border-color: var(--accent); }
+
+.screening-consent[data-focus-visible], .question-option[data-focus-visible] {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.question-progress {
+  display: grid;
+  gap: .45rem;
+  margin-bottom: 1.15rem;
+  color: var(--muted);
+  font-size: .9375rem;
+  font-weight: 800;
+}
+
+.progress-track {
+  display: block;
+  height: .45rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #e2dff1;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.question-options {
+  display: grid;
+  gap: .55rem;
+  margin-top: 1rem;
+}
+
+.question-option {
+  align-items: center;
+  padding: .65rem .85rem;
+  border: 1px solid var(--button-line);
+  border-radius: .4rem;
+  font-weight: 750;
+}
+
+.question-option[data-hovered], .question-option[data-selected], .question-option:active {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+
+.radio-mark { border-radius: 50%; }
+.question-option[data-selected] .radio-mark {
+  border: .42rem solid var(--accent);
+}
+
+.screening-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-top: 1.1rem;
+}
+.screening-actions button { cursor: pointer; }
+.screening-actions .action-link[data-disabled] {
+  border-color: #ccd0de;
+  color: #535c72;
+  background: #e7e9f0;
+  cursor: default;
+}
+
+@media (min-width: 38rem) {
+  .screening-panel { padding: 1.5rem; }
+  .screening-actions { flex-direction: row; gap: .75rem; }
+}
